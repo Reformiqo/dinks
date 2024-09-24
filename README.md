@@ -1,0 +1,7 @@
+## Dinks
+
+Dinks
+
+#### License
+
+mit
