@@ -126,7 +126,7 @@
     <!-- Select Date and Time Screen -->
     <!-- Select Date and Time Screen -->
 <template x-if="currentScreen === 'selectDateTime'">
-    <div x-data="dateTimeSelection()">
+    <div x-data="fetchAvailableDays()">
         <div class="text-center col-12 p-4" style="background-color: #B3DFF2;">
             <h2 class="heading-custom">When Would You Like to Play?</h2>
         </div>
