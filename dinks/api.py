@@ -1,6 +1,6 @@
 import frappe
 from datetime import datetime, timedelta
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_next_30_days():
     
     today = datetime.today()
@@ -11,8 +11,8 @@ def get_next_30_days():
         date_str = next_date.strftime('%Y-%m-%d')  # Format date as YYYY-MM-DD
         
         next_30_days.append({
-            "day": day_name,
-            "date": date_str
+            "day": day_name[:3],
+            "date": date_str.split('-')[-1]
         })
     
     return next_30_days
@@ -33,3 +33,4 @@ def get_courts():
 def get_court_schedules(court_name):
     schedules = frappe.get_all("Court Schedules", {"court": court_name}, ["court", "date", "time"])
     return schedules
+
