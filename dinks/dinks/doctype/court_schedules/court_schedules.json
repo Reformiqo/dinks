@@ -17,19 +17,20 @@
   },
   {
    "fieldname": "time",
-   "fieldtype": "Time",
-   "label": "Time"
+   "fieldtype": "Select",
+   "label": "Time",
+   "options": "07:00 AM\n08:00 AM\n09:00 AM\n10:00 AM\n11::00 AM\n12:00 PM\n01:00 PM\n02:00 PM\n03:00 PM\n04:00 PM\n05:00 PM\n06:00 PM\n07:00 PM\n08:00 PM\n09:00 PM\n10:00 PM\n11:00 PM"
   },
   {
    "fieldname": "court",
    "fieldtype": "Link",
    "label": "Court",
-   "options": "Location Court"
+   "options": "Court"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-25 02:11:53.118332",
+ "modified": "2024-09-26 04:40:56.631150",
  "modified_by": "Administrator",
  "module": "Dinks",
  "name": "Court Schedules",
