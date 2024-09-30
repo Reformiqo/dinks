@@ -7,7 +7,8 @@
  "field_order": [
   "court",
   "date",
-  "time"
+  "time",
+  "court_number"
  ],
  "fields": [
   {
@@ -24,13 +25,19 @@
   {
    "fieldname": "court",
    "fieldtype": "Link",
-   "label": "Court",
+   "label": "Court Location",
    "options": "Court"
+  },
+  {
+   "fieldname": "court_number",
+   "fieldtype": "Link",
+   "label": "Court Number",
+   "options": "Location Courts"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-26 04:40:56.631150",
+ "modified": "2024-09-26 20:12:12.315802",
  "modified_by": "Administrator",
  "module": "Dinks",
  "name": "Court Schedules",
