@@ -1,1 +1,0 @@
-import{p as r,V as a}from"./runtime.aayF27iC.js";function l(t,e,n,f){r&&a(),e===void 0||e(t,n)}function d(t){var n;var e=(n=t.$$slots)==null?void 0:n.default;return e===!0?t.children:e}export{d,l as s};

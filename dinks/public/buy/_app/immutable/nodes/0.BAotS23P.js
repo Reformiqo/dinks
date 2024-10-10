@@ -1,1 +1,0 @@
-import{L as l}from"../chunks/layout.D8Ll-ed7.js";const e=!0,o=!1,r="never",t=Object.freeze(Object.defineProperty({__proto__:null,prerender:e,ssr:o,trailingSlash:r},Symbol.toStringTag,{value:"Module"}));export{l as component,t as universal};
