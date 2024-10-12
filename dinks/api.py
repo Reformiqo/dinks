@@ -260,7 +260,7 @@ def create_booking():
     frappe.sendmail(
         recipients=email,
         subject="Court Booking Confirmation",
-        message=f"Hello {first_name}, your court booking has been confirmed."
+        message=f"Hello {first_name}, your court booking has been confirmed. and your booking id is {booking.name}"
     )
     return {'booking': booking.name}
 
