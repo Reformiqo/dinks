@@ -311,7 +311,7 @@ def get_payment_link():
         "amount": cint(amount) * 100,
         "currency": "INR",
         "description": full_name,
-        "callback_url": "https://dinkstest.erpera.io/buy/play-now/confirmation",
+        "callback_url": "https://dinksports.erpera.io/buy/play-now/confirmation",
         "callback_method": "get"
     }
     response = client.invoice.create(data)
@@ -337,7 +337,7 @@ def get_member_payment_link():
         "amount": cint(frappe.db.get_value("Item Price", {"item_code": "Dink Patron Membership", "price_list": "Standard Selling"}, "price_list_rate")) * 100,
         "currency": "INR",
         "description": full_name,
-        "callback_url": "https://dinkstest.erpera.io/buy/become-a-member/confirmation",
+        "callback_url": "https://dinksports.erpera.io/buy/become-a-member/confirmation",
         "callback_method": "get"
     }
     response = client.invoice.create(data)
