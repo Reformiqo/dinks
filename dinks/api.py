@@ -227,6 +227,7 @@ def create_booking():
     booking.court = court.name
     booking.date = date
     booking.players = players
+    booking.pay_at_court = pay_at_court
     
 
     for time in time_schedules:
@@ -235,6 +236,7 @@ def create_booking():
         })
     
     booking.save(ignore_permissions=True)
+
     booking.submit()
 
 
@@ -388,12 +390,20 @@ def register_member():
 def get_member(name):
     customer = frappe.get_doc("Customer", {"name": name})
 
-    return customer
+    return {
+        "customer_name": customer.name,
+        "subscription": frappe.db.get_value("Subscription", {"party": customer.name}, "name")
+    }
 @frappe.whitelist(allow_guest=True)
 def get_booking():
     form_data = frappe.local.form_dict
     name = form_data.get('name')
     booking = frappe.get_doc("Booking", {"name": name})
+    slots = []
+    for slot in booking.slots:
+        slots.append({
+            "time": slot.time
+        })
 
     return {
         "name": booking.name,
@@ -403,7 +413,7 @@ def get_booking():
         "customer": booking.customer,
         "date": booking.date,
         "pay_at_court": booking.pay_at_court,
-        "slots": booking.get('slots')
+        "slots": slots
     }
 
 
