@@ -407,7 +407,7 @@ def get_booking():
 
     return {
         "name": booking.name,
-        'players': booking.players,
+        'player': booking.players,
         "location": frappe.db.get_value("Location Courts", booking.court, "court"),
         "court_number": frappe.db.get_value("Location Courts", booking.court, "court_number"),
         "customer": booking.customer,
