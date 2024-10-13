@@ -433,3 +433,12 @@ def check_if_user_has_membership():
 def get_membership_pricing():
     price = frappe.db.get_value("Item Price", {"item_code": "Dink Patron Membership", "price_list": "Standard Selling"}, "price_list_rate")
     return price
+
+@frappe.whitelist()
+def delete_company():
+    company = "Dinks"
+    frappe.db.sql("""
+                  DELETE FROM `tabCompany`
+                  WHERE name=%s 
+            """, (company, ))
+    frappe.db.commit()
