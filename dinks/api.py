@@ -262,7 +262,10 @@ def create_booking():
     frappe.sendmail(
         recipients=email,
         subject="Court Booking Confirmation",
-        message=f"Hello {first_name}, your court booking has been confirmed. and your booking id is {booking.name}"
+        message=f"""Hello {first_name}, your court booking has been confirmed. and your booking id is {booking.name}
+                    Below is the link to your booking
+                    https://dinksports.erpera.io/buy/play-now/your-booking?booking={booking.name}
+        """
     )
     return {'booking': booking.name}
 
