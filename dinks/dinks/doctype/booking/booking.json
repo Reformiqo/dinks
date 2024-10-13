@@ -8,6 +8,7 @@
   "section_break_qevb",
   "customer",
   "court",
+  "players",
   "column_break_rjhf",
   "posting_date",
   "date",
@@ -79,12 +80,17 @@
    "fieldname": "pay_at_court",
    "fieldtype": "Check",
    "label": "Pay At Court"
+  },
+  {
+   "fieldname": "players",
+   "fieldtype": "Data",
+   "label": "Players"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-09 06:58:48.520797",
+ "modified": "2024-10-13 14:16:46.264450",
  "modified_by": "Administrator",
  "module": "Dinks",
  "name": "Booking",

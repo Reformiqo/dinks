@@ -206,6 +206,7 @@ def create_booking():
     weekday = form_data.get("weekday")
     amount = form_data.get("amount")
     pay_at_court = form_data.get("pay_at_court")
+    players = form_data.get("players")
     # return form_data
     
     if frappe.db.exists("Customer", {"email": email, "phone": phone}):
@@ -225,6 +226,7 @@ def create_booking():
     booking.customer = customer.name
     booking.court = court.name
     booking.date = date
+    booking.players = players
     
 
     for time in time_schedules:
@@ -390,7 +392,15 @@ def get_booking():
     name = form_data.get('name')
     booking = frappe.get_doc("Booking", {"name": name})
 
-    return booking
+    return {
+        "name": booking.name,
+        'players': booking.players,
+        "location": frappe.db.get_value("Location Courts", booking.court, "court"),
+        "court_number": frappe.db.get_value("Location Courts", booking.court, "court_number"),
+        "customer": booking.customer,
+        "date": booking.date,
+        "pay_at_court": booking.pay_at_court
+    }
 
 
 @frappe.whitelist(allow_guest=True)
