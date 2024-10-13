@@ -1,0 +1,1 @@
+var s;const t=((s=globalThis.__sveltekit_1avo1kh)==null?void 0:s.base)??"";var a;const e=((a=globalThis.__sveltekit_1avo1kh)==null?void 0:a.assets)??"https://app.dinkclub.in/assets/dinks/buy";export{e as a,t as b};
