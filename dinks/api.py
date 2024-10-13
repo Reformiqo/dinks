@@ -266,7 +266,7 @@ def create_booking():
         subject="Court Booking Confirmation",
         message=f"""Hello {first_name}, your court booking has been confirmed. and your booking id is {booking.name}
                     Below is the link to your booking
-                    https://app.dinkclub.in/buy/play-now/your-booking?booking={booking.name}
+                    https://dinksports.erpera.io/buy/play-now/your-booking?booking={booking.name}
         """
     )
     return {'booking': booking.name}
@@ -318,7 +318,7 @@ def get_payment_link():
         "amount": cint(amount) * 100,
         "currency": "INR",
         "description": full_name,
-        "callback_url": "https://app.dinkclub.in/buy/play-now/confirmation",
+        "callback_url": "https://dinksports.erpera.io/buy/play-now/confirmation",
         "callback_method": "get"
     }
     response = client.invoice.create(data)
@@ -344,7 +344,7 @@ def get_member_payment_link():
         "amount": cint(frappe.db.get_value("Item Price", {"item_code": "Dink Patron Membership", "price_list": "Standard Selling"}, "price_list_rate")) * 100,
         "currency": "INR",
         "description": full_name,
-        "callback_url": "https://app.dinkclub.in/buy/become-a-member/confirmation",
+        "callback_url": "https://dinksports.erpera.io/buy/become-a-member/confirmation",
         "callback_method": "get"
     }
     response = client.invoice.create(data)
