@@ -9,6 +9,7 @@
   "customer",
   "court",
   "players",
+  "time_period",
   "column_break_rjhf",
   "posting_date",
   "date",
@@ -85,12 +86,17 @@
    "fieldname": "players",
    "fieldtype": "Data",
    "label": "Players"
+  },
+  {
+   "fieldname": "time_period",
+   "fieldtype": "Data",
+   "label": "Time Period"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-13 14:16:46.264450",
+ "modified": "2024-10-14 21:29:13.711714",
  "modified_by": "Administrator",
  "module": "Dinks",
  "name": "Booking",

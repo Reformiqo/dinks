@@ -207,6 +207,7 @@ def create_booking():
     amount = form_data.get("amount")
     pay_at_court = form_data.get("pay_at_court")
     players = form_data.get("player")
+    time_period = form_data.get("time_period")
     # return form_data
     
     if frappe.db.exists("Customer", {"email": email, "phone": phone}):
@@ -228,6 +229,7 @@ def create_booking():
     booking.date = date
     booking.players = players
     booking.pay_at_court = pay_at_court
+    booking.time_period = time_period
     
 
     for time in time_schedules:
@@ -413,6 +415,7 @@ def get_booking():
         "customer": booking.customer,
         "date": booking.date,
         "pay_at_court": booking.pay_at_court,
+        "time_period": booking.time_period,
         "slots": slots
     }
 
