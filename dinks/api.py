@@ -406,11 +406,12 @@ def get_booking():
         slots.append({
             "time": slot.time
         })
+    location = frappe.get_doc("Location Courts", booking.court)
 
     return {
         "name": booking.name,
         'player': booking.players,
-        "location": frappe.db.get_value("Location Courts", booking.court, "court"),
+        "location": frappe.db.get_value("Court", location.court, "location"),
         "court_number": frappe.db.get_value("Location Courts", booking.court, "court_number"),
         "customer": booking.customer,
         "date": booking.date,
