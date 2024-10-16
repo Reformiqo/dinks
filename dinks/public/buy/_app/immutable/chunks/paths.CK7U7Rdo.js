@@ -1,1 +1,0 @@
-var s;const e=((s=globalThis.__sveltekit_wxykc1)==null?void 0:s.base)??"";var t;const a=((t=globalThis.__sveltekit_wxykc1)==null?void 0:t.assets)??"https://dinkstest.erpera.io/assets/dinks/buy";export{a,e as b};
