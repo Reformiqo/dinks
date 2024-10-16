@@ -210,7 +210,7 @@ def create_booking():
     time_period = form_data.get("time_period")
     # return form_data
     
-    if frappe.db.exists("Customer", {"email": email, "phone": phone}):
+    if frappe.db.exists("Customer", {"phone": phone}):
         customer = frappe.get_doc("Customer", {"email": email, "phone": phone})
     else:
         customer = frappe.get_doc({
@@ -230,6 +230,7 @@ def create_booking():
     booking.players = players
     booking.pay_at_court = pay_at_court
     booking.time_period = time_period
+    booking.pay_at_court
     
 
     for time in time_schedules:
@@ -241,27 +242,55 @@ def create_booking():
 
     booking.submit()
 
+    location = frappe.get_doc("Location Courts", court.name)
+
 
     invoice = frappe.new_doc("Sales Invoice")
     invoice.customer = customer.name
+    invoice.custom_booking_id = booking.name
+    invoice.custom_court = booking.court
+    invoice.custom_players = booking.players
+    invoice.custom_time_period = booking.time_period
+    invoice.custom_location = frappe.db.get_value("Court", location.court, "location")
+
     invoice.append("items", {
         "item_code": "Court Booking",
         "qty": 1,
         "rate": amount
     })
-    if pay_at_court and pay_at_court == 1:
-        frappe.db.set_value("Booking", booking.name, "pay_at_court", 1)
-
-    else:
-        invoice.is_pos = 1
-        invoice.append("payments", {
-            "mode_of_payment": "Razorpay",
-            "amount": amount
-            })
-        invoice.paid_amount = amount
     invoice.save(ignore_permissions=True)
     invoice.submit()
     frappe.db.commit()
+
+    paid  = frappe.db.get_value("Booking", booking.name, "pay_at_court")
+    if paid == 0:
+        import erpnext
+        company = frappe.get_doc("Company", erpnext.get_default_company())   
+        payment_entry = frappe.new_doc('Payment Entry')
+        payment_entry.payment_type = 'Receive'
+        payment_entry.mode_of_payment = "Cash"
+
+        payment_entry.paid_from = company.default_receivable_account
+        payment_entry.party_type = 'Customer'
+        payment_entry.party = customer.name
+        payment_entry.received_amount = invoice.total
+        payment_entry.paid_amount = invoice.total
+        payment_entry.reference_no = invoice.name
+        payment_entry.reference_date = invoice.posting_date
+        payment_entry.paid_to = company.default_cash_account
+
+        payment_entry.append('references', {
+                'reference_doctype': 'Sales Invoice',
+                'reference_name': invoice.name,
+                'total_amount': invoice.grand_total,
+                'outstanding_amount': invoice.outstanding_amount,
+                'allocated_amount': invoice.outstanding_amount
+                })
+        payment_entry.save(ignore_permissions=True)
+        payment_entry.submit()
+        frappe.db.commit()
+        
+        
     # razorpay_invoice = create_invoice(invoice)
     frappe.sendmail(
         recipients=email,
