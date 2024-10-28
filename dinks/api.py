@@ -259,37 +259,16 @@ def create_booking():
         "qty": 1,
         "rate": get_booking_price(booking.name)
     })
-    invoice.save(ignore_permissions=True)
-    invoice.submit()
-    frappe.db.commit()
+    
 
     paid  = frappe.db.get_value("Booking", booking.name, "pay_at_court")
     if paid == 0:
-        import erpnext
-        company = frappe.get_doc("Company", erpnext.get_default_company())   
-        payment_entry = frappe.new_doc('Payment Entry')
-        payment_entry.payment_type = 'Receive'
-        payment_entry.mode_of_payment = "Cash"
+        invoice.is_pos = 1
+        invoice.pos_profile = "Razorpay"
 
-        payment_entry.paid_from = company.default_receivable_account
-        payment_entry.party_type = 'Customer'
-        payment_entry.party = customer.name
-        payment_entry.received_amount = invoice.total
-        payment_entry.paid_amount = invoice.total
-        payment_entry.reference_no = invoice.name
-        payment_entry.reference_date = invoice.posting_date
-        payment_entry.paid_to = company.default_cash_account
-
-        payment_entry.append('references', {
-                'reference_doctype': 'Sales Invoice',
-                'reference_name': invoice.name,
-                'total_amount': invoice.grand_total,
-                'outstanding_amount': invoice.outstanding_amount,
-                'allocated_amount': invoice.outstanding_amount
-                })
-        payment_entry.save(ignore_permissions=True)
-        payment_entry.submit()
-        frappe.db.commit()
+    invoice.save(ignore_permissions=True)
+    invoice.submit()
+    frappe.db.commit()
         
         
     # razorpay_invoice = create_invoice(invoice)
