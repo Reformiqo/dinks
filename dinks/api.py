@@ -1,6 +1,6 @@
 import frappe
 from datetime import datetime, timedelta
-from frappe.utils import getdate, cint, today
+from frappe.utils import getdate, cint, today, flt
 import razorpay
 import frappe
 from datetime import datetime, timedelta
@@ -232,7 +232,7 @@ def create_booking():
     booking.time_period = time_period
     booking.pay_at_court
     
-
+    
     for time in time_schedules:
         booking.append("slots", {
             "time": time
@@ -252,11 +252,12 @@ def create_booking():
     invoice.custom_players = booking.players
     invoice.custom_time_period = booking.time_period
     invoice.custom_location = frappe.db.get_value("Court", location.court, "location")
+   
 
     invoice.append("items", {
         "item_code": "Court Booking",
         "qty": 1,
-        "rate": amount
+        "rate": get_booking_price(booking.name)
     })
     invoice.save(ignore_permissions=True)
     invoice.submit()
@@ -302,6 +303,15 @@ def create_booking():
     )
     return {'booking': booking.name}
 
+@frappe.whitelist(allow_guest=True)
+def get_booking_price(booking_id):
+    booking = frappe.get_doc("Booking", booking_id)
+    weekday = booking.date.strftime('%A')
+    amount = 0
+    for slot in booking.slots:
+        amount += flt(frappe.db.get_value("Booking Price Details", {"parent": weekday, "slot_category": slot.category}, "rate"))
+
+    return amount
 
 @frappe.whitelist()
 def create_invoice(doc, method=None):
