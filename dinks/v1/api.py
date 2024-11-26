@@ -546,7 +546,7 @@ def register_event():
             "price": event.price,
             "players":  players,
             "date": date,
-            "start_time": event.from_time
+            "start_time": event.from_time,
             "end_time": event.to_time
         }
         }
