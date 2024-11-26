@@ -43,7 +43,7 @@ def profile():
         user.email = email
         user.mobile_no = mobile_number
         user.birth_date = date_of_birth
-        uuser.save()
+        user.save()
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), ("Failed to update profile"))
