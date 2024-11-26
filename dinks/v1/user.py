@@ -14,8 +14,18 @@ def reset_password(email):
             "error": str(e)
         }
 @frappe.whitelist(allow_guest=True)
-def change_password(email, old_password, new_password):
-    pass
+def change_password():
+    try:
+        data = frappe.local.form_dict
+        email = data.get('email')
+        old_password = data.get('old_passwrod')
+        new_password = data.get('password')
+        frappe.db.set_value("User", email, "new_password", new_password)
+        frappe.db.commit()
+
+    except:
+
+    
 @frappe.whitelist( allow_guest=True )
 def profile():
     try:
