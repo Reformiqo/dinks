@@ -115,7 +115,7 @@ def get_time_slots():
     return {
         "morning": moring_slots,
         "afternoon": afternoon_slots,
-        "evening": evening_slots
+        "evening": evening_slots,
     }   
 @frappe.whitelist(allow_guest=True)
 def get_everything(location, ):
