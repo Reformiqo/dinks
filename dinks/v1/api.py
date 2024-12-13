@@ -551,3 +551,151 @@ def register_event():
         }
         }
 
+@frappe.whitelist()
+def modify_booking():
+#      "user_id": "12345",
+#   "booking_id": "abc123",
+#   "new_date": "2024-08-24",
+#   "new_time": "6:00 AM - 7:00 AM"
+    data = frappe.local.form_dict
+    user_id = data.get("user_id")
+    booking_id = data.get("booking_id")
+    new_date = data.get("new_date")
+    new_time = data.get("new_time")
+    if frappe.db.exists("Booking", booking_id):
+        doc = frappe.get_doc("Booking", booking_id)
+        doc.date = new_date
+        doc.from_time = new_time
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        frappe.local.response["message"] = {
+            "success_key": 1,
+            "message": "Booking updated successfully"
+        }
+    else:
+        frappe.local.response["message"] = {
+            "success_key": 0,
+            "message": "Booking not found"
+        }
+        return
+@frappe.whitelist()
+def cancel_booking():
+    data = frappe.local.form_dict
+    user_id = data.get("user_id")
+    booking_id = data.get("booking_id")
+
+    try:
+        if frappe.db.exists("Booking", bookiing_id):
+            doc = frappe.get_doc("Booking", booking_id):
+            doc.cancel()
+            frappe.db.commit()
+            frappe.local.response["message"] = 
+                {    
+                "success_key": 1,
+                "message": "Booking canceled successfully",
+                "refund": "A refund of 100% will be processed within 7 business days."
+                }
+        else:
+            frappe.local.response["message"] = {
+                   
+                "success_key": 1,
+                "message": "Booking canceled successfully",
+                "refund": "A refund of 100% will be processed within 7 business days."
+            }
+
+    except Exception as e:
+        frappe.local.response["message"] = {
+            "success_key": 0,
+            "message": "Booking not found"
+        }
+        return
+
+@frappe.whitelist()
+def get_locations():
+    locations = frappe.get_all("Court", fields=["name", "location", "image"])
+    data = []
+    for location in locations:
+        data.append({
+            "name": location.name,
+            "location": location.location,
+            "image": location.image
+        })
+    return data
+
+@frappe.whitelist()
+def get_plan():
+    try:
+        plans = frappe.get_all("Subscription Plan")
+        for plan in plans:
+            plan_doc = frappe.get_doc("Subscription Plan", plan.name)
+            benefits = []
+            for benefit in plan_doc.plan_benefits:
+                benefits.append(benefit.benefit)
+            data.append({
+                "plan_id": plan_doc.name,
+                "plan_name": plan_doc.plan_name,
+                "description": plan_doc.custom_description,
+                "price": plan_doc.cost,
+                "duration": plan_doc.billing_interval,
+                "benefits": benefits
+            })
+        frappe.local.response["message"] = {
+            "success_key": 1,
+            "message": "Membership plans fetched successfully",
+            "data": data
+        }
+    except Exception as e:
+        frappe.local.response["message"] = {
+            "success_key": 0,
+            "message": "Error fetching membership plans"
+        }
+        return
+
+@frappe.whitelist()
+def get_prodcuts():
+    form_data = frappe.local.form_dict
+    category_id = form_data.get("category_id")
+    if category_id:
+        products = frappe.get_all("Item", {"item_group": category_id})
+    else:
+        products = frappe.get_all("Item")
+    data = []
+    if not products:
+        frappe.local.response["message"] = {
+            "success_key": 0,
+            "message": "No products found"
+        }
+        return
+    for product in products:
+        doc = frappe.get_doc("Item", product.name)
+        data.append({
+            "product_id": doc.name,
+            "product_name": doc.item_name,
+            "product_thumbnail": frappe.utils.get_url(doc.image) or "",
+            "product_price": doc.standard_selling_rate if doc.standard_selling_rate else frappe.db.get_value("Item Price", {"item_code": doc.item_code, "price_list": "Standard Selling"}, "price_list_rate") or 0,
+            "category_id": doc.item
+        })
+    frappe.local.response["message"] = {
+        "success_key": 1,
+        "message": "Products fetched successfully",
+        "data": data
+    }
+@frappe.whitelist()
+def get_product_category():
+    categories = frappe.get_all("Item Group")
+    data = []
+    for category in categories:
+        doc = frappe.get_doc("Item Group", category.name)
+        data.append({
+            "category_id": doc.name,
+            "category_name": doc.item_group_name,
+            "category_thumbnail": frappe.utils.get_url(doc.image) or "",
+            "total_products": len(frappe.get_all("Item", {"item_group": doc.name}))
+
+        })
+    frappe.local.response["message"] = {
+        "success_key": 1,
+        "message": "Product categories fetched successfully",
+        "data": data
+    }
+

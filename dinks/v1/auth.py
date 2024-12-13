@@ -4,16 +4,26 @@ from frappe import auth
 @frappe.whitelist(allow_guest=True)
 def login(usr, pwd):
     try:
+        if frappe.request.method != "POST":
+            frappe.local.response.update({
+            "http_status_code": 405,
+            "error": "Method not allowed"
+            })
+            return
         # Initialize and authenticate the login manager
         login_manager = frappe.auth.LoginManager()
         login_manager.authenticate(user=usr, pwd=pwd)
         login_manager.post_login()
+
+        
+        
+
     except frappe.exceptions.AuthenticationError:
         frappe.clear_messages()
-        frappe.local.response["message"] = {
-            "success_key": 0,
-            "message": "Invalid login credentials"
-        }
+        frappe.local.response.update({
+            "http_status_code": 403,
+            "error": "Invalid login credentials"
+        })
         return
     # Generate API key and secret
 
@@ -31,8 +41,11 @@ def login(usr, pwd):
         "email": user.email
         
     }
-    
-    frappe.response["message"] = data
+    frappe.clear_messages()
+    frappe.local.response.update({
+            "http_status_code": 200,
+            "data": data
+    })
 def generate_keys(user):
     user_details = frappe.get_doc('User', user)
     
@@ -70,16 +83,16 @@ def signup():
 
 
         if frappe.db.exists("User", email):
-            return {
-                "success_key": 0,
+            frappe.local.response.update({
+                "http_status_code": 400,
                 "error": "User email already registered, please login"
-            }
+            })
 
         elif frappe.db.exists("User", {"mobile_no": mobile_number}):
-            return {
-                "success_key": 0,
+            frappe.local.response.update({
+                "http_status_code": 400,
                 "error": "Mobile number already registered, please login"
-            }
+            })
 
         else:
             user = frappe.new_doc("User")
@@ -91,18 +104,18 @@ def signup():
             user.gender = gender
             user.birth_date = date_of_birth
 
-            return {
-                "message": "Your account has been created successfully",
-                "success_key": 1
-            }
+            frappe.local.response.update({
+                "http_status_code": 200,
+                "data": "Your account has been created successfully",
+            })
 
     except Exception as e:
         # Rollback in case of error to avoid partial creation
         frappe.log_error(frappe.get_traceback(), ("Failed to create user"))
-        return {
-            "success_key": 0,
+        frappe.local.response.update({
+            "http_status_code": 400,
             "error": str(e)
-        }
+        })
 
         # return user.name
 
