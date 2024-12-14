@@ -117,6 +117,30 @@ def signup():
             "error": str(e)
         })
 
-        # return user.name
+
+@frappe.whitelist(allow_guest=True)
+def forget_password():
+    try:
+        data = frappe.local.form_dict
+        email = data.get("email")
+        user = frappe.get_doc("User", email)
+        if not user:
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "User not found"
+            })
+        else:
+            user.reset_password()
+            frappe.local.response.update({
+                "http_status_code": 200,
+                "data": "Password reset link has been sent to your email"
+            })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), ("Failed to reset password"))
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": str(e)
+        })
 
 
