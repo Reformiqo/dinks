@@ -24,10 +24,10 @@ def fetch_schedules(court: str):
 @frappe.whitelist()
 def get_next_30_days():
     """Get a list of the next 30 days starting from today."""
-    frappe.local.response = {
-        "success": True,
+    frappe.local.response.update({
+        "http_status_code": 200,
         "data": get_days(start_date=nowdate(), days=30)
-    }
+    })
 
 @frappe.whitelist()
 def get_available_courts(date: str, time_schedules: str):
@@ -45,26 +45,26 @@ def get_available_courts(date: str, time_schedules: str):
             if is_available:
                 available_courts.append({"name": court.name, "price": court.price})
 
-        frappe.local.response = {
-            "success": True,
+        frappe.local.response.update({
+            "http_status_code": 200,
             "data": available_courts
-        }
+        })
 
     except Exception as e:
         frappe.log_error(f"Error fetching available courts: {str(e)}", "Get Available Courts")
-        frappe.local.response = {
-            "success": False,
+        frappe.local.response.update({
+            "http_status_code": 400,
             "error": str(e)
-        }
+        })
 
 @frappe.whitelist()
 def create_booking(court: str, date: str, time_schedules: str, customer_name: str, email: str):
     """Create a court booking for a specific court, date, and time schedule."""
     if not is_email_valid(email):
-        frappe.local.response = {
-            "success": False,
+        frappe.local.response.update({
+            "http_status_code": 400,
             "error": "Invalid email address."
-        }
+        })
         return
 
     try:
@@ -74,10 +74,10 @@ def create_booking(court: str, date: str, time_schedules: str, customer_name: st
             filters={"court": court, "date": date, "time_schedules": ("like", f"%{time_schedules}%")},
         )
         if existing_booking:
-            frappe.local.response = {
-                "success": False,
+            ffrappe.local.response.update({
+                "http_status_code": 400,
                 "error": "Court is already booked for the selected time."
-            }
+            })
             return
 
         # Ensure customer exists or create one
@@ -92,7 +92,9 @@ def create_booking(court: str, date: str, time_schedules: str, customer_name: st
                 "territory": "All Territories"
             })
             customer_doc.insert()
+            frappe.db.commit()
             customer = customer_doc.name
+
 
         # Create Booking
         booking = frappe.get_doc({
@@ -103,18 +105,19 @@ def create_booking(court: str, date: str, time_schedules: str, customer_name: st
             "customer": customer
         })
         booking.insert()
+        frappe.db.commit()
 
-        frappe.local.response = {
-            "success": True,
-            "message": "Booking created successfully."
-        }
+        frappe.local.response.update({
+            "http_status_code": 200,
+            "data": "Booking created successfully."
+        })
 
     except Exception as e:
         frappe.log_error(f"Error creating booking: {str(e)}", "Create Booking")
-        frappe.local.response = {
-            "success": False,
+        frappe.local.response.update({
+            "http_status_code": 400,
             "error": str(e)
-        }
+        })
 
 @frappe.whitelist()
 def get_everything():
@@ -122,17 +125,17 @@ def get_everything():
     try:
         courts = frappe.get_all("Court", fields=["name", "price"])
         schedules = frappe.get_all("Court Schedule", fields=["court", "date", "time_schedules"])
-        frappe.local.response = {
-            "success": True,
+        frappe.local.response.update({
+            "http_status_code": 200,
             "data": {
                 "courts": courts,
                 "schedules": schedules
             }
-        }
+        })
 
     except Exception as e:
         frappe.log_error(f"Error fetching everything: {str(e)}", "Get Everything")
-        frappe.local.response = {
-            "success": False,
+        frappe.local.response.update({
+            "http_status_code": 400,
             "error": str(e)
-        }
+        })
