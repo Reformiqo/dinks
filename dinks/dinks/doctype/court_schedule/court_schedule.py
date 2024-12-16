@@ -5,7 +5,7 @@ import frappe
 from frappe.model.document import Document
 
 
-class CourtSchedules(Document):
+class CourtSchedule(Document):
 	def validate(self):
 		pass
 		# Check if the court schedule is already booked

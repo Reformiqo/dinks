@@ -118,7 +118,7 @@ def get_time_slots():
         "evening": evening_slots
     }   
 @frappe.whitelist(allow_guest=True)
-def get_everything(location, ):
+def get_everything(location):
     dates = get_days(location)  # Fetch next 30 days
     schedule_data = []
 

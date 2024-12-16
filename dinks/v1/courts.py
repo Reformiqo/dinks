@@ -119,18 +119,42 @@ def create_booking(court: str, date: str, time_schedules: str, customer_name: st
             "error": str(e)
         })
 
-@frappe.whitelist()
-def get_everything():
-    """Fetch all available courts, schedules, and rates."""
-    try:
-        courts = frappe.get_all("Court", fields=["name", "price"])
-        schedules = frappe.get_all("Court Schedule", fields=["court", "date", "time_schedules"])
+@frappe.whitelist(allow_guest=True)
+def get_everything(location):
+    dates = get_days(location)  # Fetch next 30 days
+    schedule_data = []
+
+    # Fetch all courts for the location at once
+    courts = frappe.get_all("Location Courts", filters={"court": location}, fields=["name", "court_number", "status"], order_by="court_number")
+
+    # Loop through dates and check court schedules
+    for date in dates:
+        date_str = date.get("date")
+        court_data = []
+        for court in courts:
+            schedules = frappe.get_all("Court Schedules", filters={"court": location, "date": date_str, "court_number": court.name}, fields=["court_number", "time"])
+            # Find if the court has a schedule for the current date
+            # scheduled_court = next((s for s in schedules if s.get("court_number") == court.get("name")), None)
+            s_data = []
+            for s in schedules:
+                if s.get("court_number") == court.get("name"):
+                    s_data.append({
+                        "time": s.get("time")
+                    })
+            court_data.append({
+                "court_number": court.get("court_number"),
+                "schedules": s_data
+            })
+        
+        
+        schedule_data.append({
+            "date": date_str,
+            "court_data": court_data
+        })
+
         frappe.local.response.update({
             "http_status_code": 200,
-            "data": {
-                "courts": courts,
-                "schedules": schedules
-            }
+            "data": schedule_data
         })
 
     except Exception as e:

@@ -6,9 +6,11 @@
  "engine": "InnoDB",
  "field_order": [
   "court",
+  "location",
+  "column_break_mznv",
   "date",
-  "time",
-  "court_number"
+  "start_time",
+  "end_time"
  ],
  "fields": [
   {
@@ -16,40 +18,58 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Date"
+   "label": "Date",
+   "reqd": 1
   },
   {
-   "fieldname": "time",
+   "fetch_from": "court.location",
+   "fieldname": "location",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Time",
-   "options": "Time Slots"
+   "label": "Location",
+   "options": "Location",
+   "reqd": 1
   },
   {
    "fieldname": "court",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Court Location",
-   "options": "Court"
-  },
-  {
-   "fieldname": "court_number",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Court Number",
-   "options": "Location Courts"
+   "label": "Court",
+   "options": "Court",
+   "reqd": 1
+  },
+  {
+   "fieldname": "start_time",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Start Time",
+   "options": "Time Slots",
+   "reqd": 1
+  },
+  {
+   "fieldname": "end_time",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "End Time ",
+   "options": "Time Slots",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_mznv",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-10-03 02:44:24.771464",
+ "modified": "2024-12-15 16:54:00.699808",
  "modified_by": "Administrator",
  "module": "Dinks",
- "name": "Court Schedules",
+ "name": "Court Schedule",
  "owner": "Administrator",
  "permissions": [
   {

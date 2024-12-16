@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestCourtSchedules(FrappeTestCase):
+class TestTeam(FrappeTestCase):
 	pass
