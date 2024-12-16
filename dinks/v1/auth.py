@@ -103,6 +103,8 @@ def signup():
             user.send_welcome_email = 0
             user.gender = gender
             user.birth_date = date_of_birth
+            user.save()
+            frappe.db.commit()
 
             frappe.local.response.update({
                 "http_status_code": 200,
