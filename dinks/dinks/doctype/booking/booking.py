@@ -7,14 +7,15 @@ from frappe.model.document import Document
 
 class Booking(Document):
 	def on_submit(self):
-		for slot in self.slots:
-			schedule = frappe.new_doc("Court Schedules")
-			schedule.court = frappe.db.get_value("Location Courts", self.court, "court")
-			schedule.date = self.date
-			schedule.time = slot.time
-			schedule.court_number = self.court
-			schedule.save()
-			frappe.db.commit()
+		schedule = frappe.new_doc("Court Schedule")
+		schedule.court = self.court
+		schedule.location = frappe.db.get_value("Court", self.court, "location")
+		schedule.date = self.date
+		schedule.start_time = self.start_time
+		schedule.end_time = self.end_time
+		schedule.players = self.players
+		schedule.save()
+		frappe.db.commit()
 			# schedule.court_number = 
 			
 			

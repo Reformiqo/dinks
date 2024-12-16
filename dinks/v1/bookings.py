@@ -1,12 +1,92 @@
 import frappe
 from datetime import datetime, timedelta
-from frappe.utils import getdate, cint, today, flt
+from frappe.utils import getdate, cint, today, flt, validate_email_address
 import razorpay
 import frappe
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import json
 from frappe.types import DF
 from frappe.utils import getdate, nowdate
+
+
+@frappe.whitelist()
+def create_booking(
+            court: str,
+            date: date,
+            customer_name: str,
+            email: str,
+            start_time: str,
+            end_time: str,
+            players_count: int,
+            ):
+    """Create a court booking for a specific court, date, and time schedule."""
+    if not validate_email_address(email):
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": "Invalid email address."
+        })
+        return
+
+    try:
+        # Check if court is already booked
+        existing_booking = frappe.get_all(
+            "Court Schedule",
+            {"court": court, "date": date, "start_time": start_time, "end_time": end_time},
+        )
+        if existing_booking:
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "Court is already booked for the selected time."
+            })
+            return
+
+        # Ensure customer exists or create one
+        customer = frappe.db.get_value("Customer", {"email_id": email}, "name")
+        if not customer:
+            customer_doc = frappe.get_doc({
+                "doctype": "Customer",
+                "customer_name": customer_name,
+                "email_id": email,
+                "customer_type": "Individual",
+                "customer_group": "Individual",
+                "territory": "All Territories"
+            })
+            customer_doc.insert()
+            frappe.db.commit()
+            customer = customer_doc.name
+
+
+        # Create Booking
+        booking = frappe.new_doc("Booking")
+        booking.customer = customer
+        booking.court = court
+        booking.date = date
+        booking.start_time = start_time
+        booking.end_time = end_time
+        booking.players = players_count
+        booking.insert()
+        booking.submit()
+        frappe.db.commit()
+
+        frappe.local.response.update({
+            "http_status_code": 200,
+            "message": "Booking created successfully.",
+            "data": {
+                "court": court,
+                "date": date,
+                "start_time": start_time,
+                "end_time": end_time,
+                "players": players_count
+            }
+        })
+
+    except Exception as e:
+        frappe.log_error(f"Error creating booking: {str(e)}", "Create Booking")
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": str(e)
+        })
+
 
 @frappe.whitelist(allow_guest=True)
 def get_location():
