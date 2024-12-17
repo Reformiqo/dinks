@@ -7,6 +7,7 @@
  "field_order": [
   "court",
   "location",
+  "booking",
   "column_break_mznv",
   "date",
   "start_time",
@@ -62,11 +63,17 @@
   {
    "fieldname": "column_break_mznv",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "booking",
+   "fieldtype": "Link",
+   "label": "Booking",
+   "options": "Booking"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-15 16:54:00.699808",
+ "modified": "2024-12-17 00:35:16.801613",
  "modified_by": "Administrator",
  "module": "Dinks",
  "name": "Court Schedule",

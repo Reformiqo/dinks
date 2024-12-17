@@ -10,6 +10,7 @@
   "court",
   "players",
   "time_period",
+  "team_id",
   "column_break_rjhf",
   "posting_date",
   "date",
@@ -68,6 +69,7 @@
   {
    "fieldname": "slots",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Slots",
    "options": "Booking Slots"
   },
@@ -105,12 +107,18 @@
    "fieldtype": "Link",
    "label": "End Time",
    "options": "Time Slots"
+  },
+  {
+   "fieldname": "team_id",
+   "fieldtype": "Link",
+   "label": "Team ID",
+   "options": "Team"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-15 17:52:35.494806",
+ "modified": "2024-12-16 23:50:34.165594",
  "modified_by": "Administrator",
  "module": "Dinks",
  "name": "Booking",

@@ -14,6 +14,7 @@ class Booking(Document):
 		schedule.start_time = self.start_time
 		schedule.end_time = self.end_time
 		schedule.players = self.players
+		schedule.booking = self.name
 		schedule.save()
 		frappe.db.commit()
 			# schedule.court_number = 

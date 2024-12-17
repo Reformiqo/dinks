@@ -7,7 +7,9 @@ from datetime import datetime, timedelta, date
 import json
 from frappe.types import DF
 from frappe.utils import getdate, nowdate
-
+from frappe import FrappeTypeError
+from dinks.config import validate_request_params 
+from inspect import signature
 
 @frappe.whitelist()
 def create_booking(
@@ -18,6 +20,7 @@ def create_booking(
             start_time: str,
             end_time: str,
             players_count: int,
+            team_id: str = None
             ):
     """Create a court booking for a specific court, date, and time schedule."""
     if not validate_email_address(email):
@@ -41,8 +44,9 @@ def create_booking(
             return
 
         # Ensure customer exists or create one
-        customer = frappe.db.get_value("Customer", {"email_id": email}, "name")
-        if not customer:
+        if frappe.db.exists("Customer", {"email_id": email}): 
+            customer = frappe.get_value("Customer", {"email_id": email}, "name")
+        else:
             customer_doc = frappe.get_doc({
                 "doctype": "Customer",
                 "customer_name": customer_name,
@@ -64,6 +68,7 @@ def create_booking(
         booking.start_time = start_time
         booking.end_time = end_time
         booking.players = players_count
+        booking.team_id = team_id
         booking.insert()
         booking.submit()
         frappe.db.commit()
@@ -76,10 +81,10 @@ def create_booking(
                 "date": date,
                 "start_time": start_time,
                 "end_time": end_time,
-                "players": players_count
+                "players": players_count,
+                "team_id": team_id
             }
         })
-
     except Exception as e:
         frappe.log_error(f"Error creating booking: {str(e)}", "Create Booking")
         frappe.local.response.update({
@@ -272,9 +277,82 @@ def join_team(team_id:str, player_id:str):
             "data": data
             
         })
+    
     except Exception as e:
         frappe.log_error(f"Error joining team: {str(e)}", "Join Team")
         frappe.clear_messages()
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": str(e)
+        })
+
+@frappe.whitelist()
+def booking_pass(
+        date: date,
+        email: str,
+        court: str,
+        team_id: str,
+
+        ):
+    try:         
+        validate_request_params(allowed_params=set(signature(booking_pass).parameters.keys()))
+        if not validate_email_address(email):
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "Invalid email address."
+            })
+            return
+
+        
+
+        if not frappe.db.exists("Court", court):
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "Invalid court."
+            })
+            return
+
+        if not frappe.db.exists("Team", team_id):
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "Invalid team."
+            })
+            return
+
+        
+
+        if not frappe.db.exists("Booking", {"court": court, "date": date}):
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "Invalid booking."
+            })
+            return
+
+        booking = frappe.get_doc("Booking", {"court": court, "date": date, "team_id": team_id})
+        team = frappe.get_doc("Team", team_id)
+        schedule = frappe.get_doc("Court Schedule", {"booking": booking.name})
+
+        data = {
+            "email_id": email,
+            "booking_id": booking.name,
+            "court_id": court,
+            "date": date,
+            "location_id": schedule.location,
+            "team_id": team_id,
+            "total_players": team.players_count,
+            "booking_person": team.team_leader,
+            "start_time": frappe.get_value("Court Schedule", {"booking":booking.name}, "start_time"),
+            "end_time": frappe.get_value("Court Schedule", {"booking":booking.name}, "end_time"),
+            }    
+        
+        
+        frappe.local.response.update({
+            "http_status_code": 200,
+            "message": "Confirmed booking pass",
+            "data": data
+        })
+    except Exception as e:
+        frappe.log_error(f"Error confirming booking pass: {str(e)}", "Booking Pass")
         frappe.local.response.update({
             "http_status_code": 400,
             "error": str(e)
