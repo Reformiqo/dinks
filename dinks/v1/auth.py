@@ -103,7 +103,7 @@ def signup():
             user.send_welcome_email = 0
             user.gender = gender
             user.birth_date = date_of_birth
-            user.save(ignore_permissions=True)
+            user.insert(ignore_permissions=True)
             frappe.db.commit()
 
             frappe.local.response.update({
