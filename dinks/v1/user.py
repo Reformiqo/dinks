@@ -1,4 +1,5 @@
 import frappe
+# from dinks.config import 
 
 @frappe.whitelist(allow_guest=True)
 def change_password():
@@ -7,6 +8,8 @@ def change_password():
         email = data.get('email')
         old_password = data.get('old_passwrod')
         new_password = data.get('password')
+
+        user = frappe.get_doc("User", email)
         frappe.db.set_value("User", email, "new_password", new_password)
         frappe.db.commit()
         frappe.local.response.update({
@@ -24,7 +27,7 @@ def change_password():
 
     
 @frappe.whitelist( allow_guest=True )
-def profile():
+def update_profile():
     try:
         data = frappe.local.form_dict
         first_name = data.get("first_name")
@@ -55,3 +58,24 @@ def profile():
             "error": str(e)
         })
 
+@frappe.whitelist()
+def get_profile():
+    try:
+        user = frappe.get_doc('User', frappe.session.user)
+        data = {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "mobile_number": user.mobile_no,
+            "date_of_birth": user.birth_date,
+        }
+        frappe.local.response.update({
+            "http_status_code": 200,
+            "data": data
+        })
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), ("Failed to get profile"))
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": str(e)
+        })
