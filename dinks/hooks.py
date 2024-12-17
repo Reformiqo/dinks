@@ -229,10 +229,10 @@ app_license = "mit"
 
 fixtures = [
     {"doctype": "Client Script", 
-    "filters": [["module" , "in" , ("Wsc" )]]
+    "filters": [["module" , "in" , ("Dinks" )]]
     },
     {"doctype": "Custom Field",
-    "filters": [["module" , "in" , ("Wsc" )]]
+    "filters": [["module" , "in" , ("Dinks" )]]
     },
   
     ]

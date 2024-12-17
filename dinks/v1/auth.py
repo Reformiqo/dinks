@@ -41,7 +41,6 @@ def login(usr, pwd):
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "mobile_number": user.mobile
         "gender": user.gender,
         "date_of_birth": user.birth_date
         
