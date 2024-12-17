@@ -68,6 +68,7 @@ def get_profile():
             "email": user.email,
             "mobile_number": user.mobile_no,
             "date_of_birth": user.birth_date,
+            "gender": user.gender
         }
         frappe.local.response.update({
             "http_status_code": 200,
