@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format::EB_{###}",
+ "autoname": "format:EB_{###}",
  "creation": "2024-11-20 01:01:37.093814",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,8 +12,7 @@
   "column_break_ppsz",
   "date",
   "mobile",
-  "players",
-  "amended_from"
+  "players"
  ],
  "fields": [
   {
@@ -54,22 +53,11 @@
    "fieldname": "date",
    "fieldtype": "Data",
    "label": "Date"
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Event Registration",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
  "links": [],
- "modified": "2024-11-20 01:05:52.602725",
+ "modified": "2024-12-17 22:10:42.873089",
  "modified_by": "Administrator",
  "module": "Dinks",
  "name": "Event Registration",
@@ -86,7 +74,6 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "submit": 1,
    "write": 1
   }
  ],

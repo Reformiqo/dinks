@@ -357,3 +357,95 @@ def booking_pass(
             "http_status_code": 400,
             "error": str(e)
         })
+
+@frappe.whitelist()
+def booking_history():
+    user_id = frappe.session.user
+    try:
+        court_bookings = frappe.get_all("Booking", {"owner": user_id})
+        event_bookings = frappe.get_all("Event Registration", {"owner": user_id})
+        court_data = []
+        event_data = []
+        for court in court_bookings:
+            doc = frappe.get_doc("Booking", court.name)
+            court_data.append({
+                "booking_id": doc.name,
+                "court_name": frappe.db.get_value("Court", court, "court_name"),
+                "location": frappe.db.get_value("Court", court, "location"),
+                "date": doc.date,
+                "time": f"{doc.start_time} - {doc.end_time}",
+                "court": doc.court,
+                "image_url": ""
+
+            })
+        frappe.local.response.update({
+            "http_status_code": 200,
+            "data": court_data
+        })
+    except Exception as e:
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": str(e)
+        })
+    
+@frappe.whitelist()
+def modify_booking(booking_i: str, new_date: str = None, new_time_slot: dict = None):
+    try:
+        if not frappe.db.exists("Booking", booking_id):
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "Invalid booking ID"
+            })
+            return
+        start_time = new_time_slot.get("start_time")
+        end_time = new_time_slot.get("end_time")
+
+
+        booking = frappe.get_doc("Booking", booking_id)
+        if new_date:
+            frappe.db.set_value("Booking", booking_id, "date", new_date)
+        if new_time_slot:
+            frappe.db.set_value("Booking", booking_id, "start_time", start_time)
+            frappe.db.set_value("Booking", booking_id, "end_time", end_time)
+        frappe.db.commit()
+        frappe.local.response.update({
+            "http_status_code": 200,
+            "message": "Booking modified successfully",
+            "new_booking_details": {
+                "booking_id": booking_id,
+                "court": booking.court,
+                "date": new_date,
+                "start_time": start_time,
+                "end_time": end_time
+            }
+        })
+    except Exception as e:
+        frappe.log_error(f"Error modifying booking: {str(e)}", "Modify Booking")
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": str(e)
+        })
+
+@frappe.whitelist()
+def cancel_booking(booking_id:str):
+    try:
+        if not frappe.db.exists("Booking", booking_id):
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "Invalid booking ID"
+            })
+            return
+        booking = frappe.get_doc("Booking", booking_id)
+        booking.cancel()
+        frappe.db.commit()
+        frappe.local.response.update({
+            "http_status_code": 200,
+            "message": "Booking cancelled successfully",
+            "refund":"A refund of 100% will be processed in 7 business days"
+        })
+    except Exception as e:
+        frappe.log_error(f"Error cancelling booking: {str(e)}", "Cancel Booking")
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": str(e)
+        })
