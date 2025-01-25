@@ -130,7 +130,7 @@ def get_location():
 def get_location_booked_slots(location, date):
     # try:
     
-    facilities = frappe.get_list("Facility", {"location": location}, ["name", "location"])
+    facilities = frappe.get_list("Facility", ["name", "location"])
     return facilities
 
     data = []
