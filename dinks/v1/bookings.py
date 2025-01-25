@@ -128,39 +128,39 @@ def get_location():
 
 @frappe.whitelist()
 def get_location_booked_slots():
-    try:
-        form_data = frappe.local.form_dict
-        location = form_data.get("location")
-        date = getdate(form_data.get("date"))
-        facilities = frappe.get_all("Facility", {"location": location}, ["name", "location"])
-        data = []
-        for facility in facilities:
-            schedules = frappe.get_list("Schedule", {"facility": facility.name, "date": date}, ["date", "start_time", "end_time"])
-            booked_slots = []
-            for schedule in schedules:
-                start_time = schedule.get("start_time")
-                end_time = schedule.get("end_time")
-                booked_slots.append({
-                    "start_time": start_time,
-                    "end_time": end_time
-                })
-            data.append({
-                "facility_id": facility.get("name"),
-                "booked_slots": booked_slots
+    # try:
+    form_data = frappe.local.form_dict
+    location = form_data.get("location")
+    date = getdate(form_data.get("date"))
+    facilities = frappe.get_list("Facility", {"location": location}, ["name", "location"])
+    data = []
+    for facility in facilities:
+        schedules = frappe.get_list("Schedule", {"facility": facility.name, "date": date}, ["date", "start_time", "end_time"])
+        booked_slots = []
+        for schedule in schedules:
+            start_time = schedule.get("start_time")
+            end_time = schedule.get("end_time")
+            booked_slots.append({
+                "start_time": start_time,
+                "end_time": end_time
             })
-        
-        frappe.local.response.update({
-            "http_status_code": 200,
-            "message": "Timeslots fetched successfully",
-            "date": date,
-            "data": booked_slots
+        data.append({
+            "facility_id": facility.get("name"),
+            "booked_slots": booked_slots
         })
-    except Exception as e:
-        frappe.log_error(f"Error fetching booked slots: {str(e)}", "Get Booked Slots")
-        frappe.local.response.update({
-            "http_status_code": 400,
-            "error": str(e)
-        })
+    
+    frappe.local.response.update({
+        "http_status_code": 200,
+        "message": "Timeslots fetched successfully",
+        "date": date,
+        "data": booked_slots
+    })
+    # except Exception as e:
+    #     frappe.log_error(f"Error fetching booked slots: {str(e)}", "Get Booked Slots")
+    #     frappe.local.response.update({
+    #         "http_status_code": 400,
+    #         "error": str(e)
+    #     })
 
 @frappe.whitelist()
 def get_court_schedules():
