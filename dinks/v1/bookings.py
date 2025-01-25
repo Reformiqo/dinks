@@ -127,11 +127,9 @@ def get_location():
         })
 
 @frappe.whitelist()
-def get_location_booked_slots():
+def get_location_booked_slots(location, date):
     # try:
-    form_data = frappe.local.form_dict
-    location = form_data.get("location")
-    date = getdate(form_data.get("date"))
+    
     facilities = frappe.get_list("Facility", {"location": location}, ["name", "location"])
     return facilities
 
