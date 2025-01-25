@@ -133,7 +133,14 @@ def get_location_booked_slots():
     location = form_data.get("location")
     date = getdate(form_data.get("date"))
     facilities = frappe.get_list("Facility", {"location": location}, ["name", "location"])
+
     data = []
+    if not facilities:
+        frappe.local.response.update({
+            "http_status_code": 404,
+            "error": "No facilities found"
+        })
+        return
     for facility in facilities:
         schedules = frappe.get_list("Schedule", {"facility": facility.name, "date": date}, ["date", "start_time", "end_time"])
         booked_slots = []
