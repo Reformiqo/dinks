@@ -133,6 +133,7 @@ def get_location_booked_slots():
     location = form_data.get("location")
     date = getdate(form_data.get("date"))
     facilities = frappe.get_list("Facility", {"location": location}, ["name", "location"])
+    return facilities
 
     data = []
     if not facilities:
