@@ -135,7 +135,7 @@ def get_location_booked_slots():
         facilities = frappe.get_all("Facility", {"location": location}, ["name", "location"])
         data = []
         for facility in facilities:
-            schedules = frappe.get_list("Schedule", {"location": location, "date": date}, ["date", "start_time", "end_time"])
+            schedules = frappe.get_list("Schedule", {"facility": facility.name, "date": date}, ["date", "start_time", "end_time"])
             booked_slots = []
             for schedule in schedules:
                 start_time = schedule.get("start_time")
