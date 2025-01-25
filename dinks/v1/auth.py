@@ -110,6 +110,7 @@ def signup():
             user.insert(ignore_permissions=True)
             frappe.db.commit()
 
+            frappe.clear_messages()
             frappe.local.response.update({
                 "http_status_code": 200,
                 "data": "Your account has been created successfully",

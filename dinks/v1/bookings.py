@@ -132,15 +132,23 @@ def get_location_booked_slots():
         form_data = frappe.local.form_dict
         location = form_data.get("location")
         date = getdate(form_data.get("date"))
-        schedules = frappe.get_list("Court Schedule", {"location": location, "date": date}, ["date", "start_time", "end_time"])
-        booked_slots = []
-        for schedule in schedules:
-            start_time = schedule.get("start_time")
-            end_time = schedule.get("end_time")
-            booked_slots.append({
-                "start_time": start_time,
-                "end_time": end_time
+        facilities = frappe.get_all("Facility", {"location": location}, ["name", "location"])
+        data = []
+        for facility in facilities:
+            schedules = frappe.get_list("Schedule", {"location": location, "date": date}, ["date", "start_time", "end_time"])
+            booked_slots = []
+            for schedule in schedules:
+                start_time = schedule.get("start_time")
+                end_time = schedule.get("end_time")
+                booked_slots.append({
+                    "start_time": start_time,
+                    "end_time": end_time
+                })
+            data.append({
+                "facility_id": facility.get("name"),
+                "booked_slots": booked_slots
             })
+        
         frappe.local.response.update({
             "http_status_code": 200,
             "message": "Timeslots fetched successfully",
