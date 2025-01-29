@@ -94,16 +94,17 @@ def create_booking(
 
 
 @frappe.whitelist(allow_guest=True)
-def get_location():
+def get_locations():
     try:
         locations = frappe.get_all("Location")
         data = []
         for loc in locations:
             location = frappe.get_doc("Location", loc.get("name"))
+                
             data.append({
                 "name": location.get("name"),
                 "location_name": location.get("location_name"),
-                "thumbnail": location.get("thumbnail"),
+                "thumbnail": frappe.utils.get_url(location.get("thumbnail")),
                 "city": location.city,
                 "address": location.get("address"),
                 "address_url": location.get("address_url"),
@@ -126,47 +127,6 @@ def get_location():
             "error": str(e)
         })
 
-@frappe.whitelist()
-def get_location_booked_slots(location, date):
-    # try:
-    
-    facilities = frappe.get_list("Facility", ["name", "location"])
-    return facilities
-
-    data = []
-    if not facilities:
-        frappe.local.response.update({
-            "http_status_code": 404,
-            "error": "No facilities found"
-        })
-        return
-    for facility in facilities:
-        schedules = frappe.get_list("Schedule", {"facility": facility.name, "date": date}, ["date", "start_time", "end_time"])
-        booked_slots = []
-        for schedule in schedules:
-            start_time = schedule.get("start_time")
-            end_time = schedule.get("end_time")
-            booked_slots.append({
-                "start_time": start_time,
-                "end_time": end_time
-            })
-        data.append({
-            "facility_id": facility.get("name"),
-            "booked_slots": booked_slots
-        })
-    
-    frappe.local.response.update({
-        "http_status_code": 200,
-        "message": "Timeslots fetched successfully",
-        "date": date,
-        "data": booked_slots
-    })
-    # except Exception as e:
-    #     frappe.log_error(f"Error fetching booked slots: {str(e)}", "Get Booked Slots")
-    #     frappe.local.response.update({
-    #         "http_status_code": 400,
-    #         "error": str(e)
-    #     })
 
 @frappe.whitelist()
 def get_court_schedules():
@@ -218,12 +178,9 @@ def get_court_schedules():
     })
 
 @frappe.whitelist()
-def get_teams():
-    form_data = frappe.local.form_dict
+def get_teams(date: str, court: str, time_slot: dict):
     try:
-        date = form_data.get("date")
-        court = form_data.get("court")
-        time_slot = form_data.get("time_slot")
+        date = getdate(date)
         start_time = time_slot.get("start_time")
         end_time = time_slot.get("end_time")
         if not frappe.db.exists("Court Schedule", {"court": court, "date": date, "start_time": start_time, "end_time": end_time}):
@@ -254,7 +211,7 @@ def get_teams():
                 "data": data
             })
     except Exception as e:
-        frappe.log_error(f"Error fetching teams: {str(e)}", "Get Teams")
+        frappe.log_error(f"Error fetching teams: {str(e)[:100]}", "Get Teams")
         frappe.local.response.update({
             "http_status_code": 400,
             "error": str(e)
@@ -302,14 +259,16 @@ def join_team(team_id:str, player_id:str):
 
 @frappe.whitelist()
 def booking_pass(
-        date: date,
+        date: str,
         email: str,
         court: str,
-        team_id: str,
+        team_id: str = None
 
         ):
-    try:         
+    try:   
+              
         validate_request_params(allowed_params=set(signature(booking_pass).parameters.keys()))
+        date = getdate(date)
         if not validate_email_address(email):
             frappe.local.response.update({
                 "http_status_code": 400,
@@ -326,7 +285,7 @@ def booking_pass(
             })
             return
 
-        if not frappe.db.exists("Team", team_id):
+        if team_id and not frappe.db.exists("Team", team_id):
             frappe.local.response.update({
                 "http_status_code": 400,
                 "error": "Invalid team."
@@ -342,8 +301,9 @@ def booking_pass(
             })
             return
 
-        booking = frappe.get_doc("Booking", {"court": court, "date": date, "team_id": team_id})
-        team = frappe.get_doc("Team", team_id)
+        booking = frappe.get_doc("Booking", {"court": court, "date": date})
+        booking = frappe.get_doc("Booking", {"court": court, "date": date, "team_id": team_id}) if team_id else booking
+        team = frappe.get_doc("Team", team_id) if team_id else None
         schedule = frappe.get_doc("Court Schedule", {"booking": booking.name})
 
         data = {
@@ -353,8 +313,8 @@ def booking_pass(
             "date": date,
             "location_id": schedule.location,
             "team_id": team_id,
-            "total_players": team.players_count,
-            "booking_person": team.team_leader,
+            "total_players": team.players_count if team else booking.players,
+            "booking_person": team.team_leader if team else "",
             "start_time": frappe.get_value("Court Schedule", {"booking":booking.name}, "start_time"),
             "end_time": frappe.get_value("Court Schedule", {"booking":booking.name}, "end_time"),
             }    
@@ -403,7 +363,7 @@ def booking_history():
         })
     
 @frappe.whitelist()
-def modify_booking(booking_i: str, new_date: str = None, new_time_slot: dict = None):
+def modify_booking(booking_id: str, new_date: str = None, new_time_slot: dict = None):
     try:
         if not frappe.db.exists("Booking", booking_id):
             frappe.local.response.update({
@@ -413,6 +373,12 @@ def modify_booking(booking_i: str, new_date: str = None, new_time_slot: dict = N
             return
         start_time = new_time_slot.get("start_time")
         end_time = new_time_slot.get("end_time")
+        if frappe.db.exists("Booking", {"date": new_date, "start_time": start_time, "end_time": end_time}):
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "The Selected timeis already booked"
+            })
+            return
 
 
         booking = frappe.get_doc("Booking", booking_id)
@@ -463,3 +429,24 @@ def cancel_booking(booking_id:str):
             "http_status_code": 400,
             "error": str(e)
         })
+
+@frappe.whitelist()
+def view_court_details(court_id):
+    if not frappe.db.exists("Court", court_id):
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": "Invalid court ID"
+        })
+        return
+    court = frappe.get_doc("Court", court_id)
+    location = frappe.get_doc("Location", court.location)
+    facilites = frappe.get_all("Location Facilities", {"parent": location.name}, ["facility_name"])
+    frappe.local.response.update({
+        "http_status_code": 200,
+        "data": {
+            "court_id": court.name,
+            "court_name": court.court_name,
+            "location": location.location_name,
+            "facilities": facilites
+        }
+    })

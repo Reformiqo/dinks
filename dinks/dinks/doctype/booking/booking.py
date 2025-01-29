@@ -6,7 +6,7 @@ from frappe.model.document import Document
 
 
 class Booking(Document):
-	def on_submit(self):
+	def after_insert(self):
 		schedule = frappe.new_doc("Court Schedule")
 		schedule.court = self.court
 		schedule.location = frappe.db.get_value("Court", self.court, "location")
