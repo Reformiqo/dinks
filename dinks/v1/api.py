@@ -247,12 +247,11 @@ def cancel_booking():
     booking_id = data.get("booking_id")
 
     try:
-        if frappe.db.exists("Booking", bookiing_id):
-            doc = frappe.get_doc("Booking", booking_id):
+        if frappe.db.exists("Booking", booking_id):
+            doc = frappe.get_doc("Booking", booking_id)
             doc.cancel()
             frappe.db.commit()
-            frappe.local.response["message"] = 
-                {    
+            frappe.local.response["message"] = {
                 "success_key": 1,
                 "message": "Booking canceled successfully",
                 "refund": "A refund of 100% will be processed within 7 business days."

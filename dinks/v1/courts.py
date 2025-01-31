@@ -33,7 +33,10 @@ def get_next_30_days():
 def get_location_booked_slots(location:str, date:str):
     try:
         data = []
-        schedules = frappe.get_list("Court Schedule", {"location": location, "date": date}, ["date", "start_time", "end_time"])
+        morning_slots = frappe.get_all("Time Slots", {"slot_category": "Morning"}, pluck='name')
+        afternoon_slots = frappe.get_all("Time Slots", {"slot_category": "Afternoon"}, pluck='name')
+        evening_slots = frappe.get_all("Time Slots", {"slot_category": "Evening"}, pluck='name')
+        schedules = frappe.get_all("Court Schedule", {"location": location, "date": date}, ["date", "start_time", "end_time"])
         booked_slots = []
         for schedule in schedules:
             start_time = schedule.get("start_time")
@@ -42,14 +45,19 @@ def get_location_booked_slots(location:str, date:str):
                 "start_time": start_time,
                 "end_time": end_time
             })
-        data.append({
-            "booked_slots": booked_slots
-        })
+        
 
         frappe.local.response.update({
             "http_status_code": 200,
             "date": date,
-            "data": booked_slots
+            "data": {
+                "all_slots": {
+                    "morning_slots": morning_slots,
+                    "afternoon_slots": afternoon_slots,
+                    "evening_slots": evening_slots
+                },
+                "booked_slots": booked_slots
+            }
         })
     except Exception as e:
         frappe.log_error(f"Error fetching booked slots: {str(e)}", "Get Booked Slots")
@@ -64,29 +72,47 @@ def get_available_courts(date: str, time_slot: dict):
     try:
         date = getdate(date)
         all_courts = frappe.get_all("Court", fields=["*"])
-        available_courts = []
+        indoor_courts = []
+        outdoor_courts = []
         start_time = time_slot.get("start_time")
         end_time = time_slot.get("end_time")
         for court in all_courts:
             schedules = fetch_schedules(court.name)
             
             if frappe.db.exists("Court Schedule", {"court": court.name, "date": date, "start_time": start_time, "end_time": end_time}):
-                available_courts.append({
-                    "court_id": court.name,
-                    "court_name": court.court_name,
-                    "is_available": False
-                })
+                if court.court_type == "Indoor":
+                    indoor_courts.append({
+                        "court_id": court.name,
+                        "court_name": court.court_name,
+                        "is_available": False
+                    })
+                else:
+                    outdoor_courts.append({
+                        "court_id": court.name,
+                        "court_name": court.court_name,
+                        "is_available": False
+                    })
+                
             else:
-                available_courts.append({
-                    "court_id": court.name,
-                    "court_name": court.court_name,
-                    "is_available": True,
-                    
-                })
+                if court.court_type == "Indoor":
+                    indoor_courts.append({
+                        "court_id": court.name,
+                        "court_name": court.court_name,
+                        "is_available": True
+                    })
+                else:
+                    outdoor_courts.append({
+                        "court_id": court.name,
+                        "court_name": court.court_name,
+                        "is_available": True
+                    })
                 
         frappe.local.response.update({
             "http_status_code": 200,
-            "data": available_courts
+            "data": {
+                "indoor_courts": indoor_courts,
+                "outdoor_courts": outdoor_courts
+            }
         })
 
     except Exception as e:
@@ -202,3 +228,94 @@ def get_everything(location):
             "http_status_code": 400,
             "error": str(e)
         })
+
+@frappe.whitelist(allow_guest=True)
+def get_locations():
+    try:
+        locations = frappe.get_all("Location")
+        data = []
+        for loc in locations:
+            location = frappe.get_doc("Location", loc.get("name"))
+            location_photos = frappe.get_all("Location Photo", {"location": location.get("name")}, ["photo"])
+            photos = []
+            for photo in location_photos:
+                photos.append(frappe.utils.get_url(photo.get("photo")))
+            facilities = []
+            for facility in location.facilities:
+                facilities.append(facility.get("facility_name"))
+                
+            data.append({
+                "name": location.get("name"),
+                "location_name": location.get("location_name"),
+                "thumbnail": frappe.utils.get_url(location.get("thumbnail")),
+                "city": location.city,
+                "address": location.get("address"),
+                "address_url": location.get("address_url"),
+                "full_address": location.get("full_address"),
+                "price": location.get("price"),
+                "indoor_courts": location.get("indoor_courts"),
+                "outdoor_courts": location.get("outdoor_courts"),
+                "facilities": facilities,
+                "photos": photos
+            })
+
+        frappe.local.response.update({
+            "http_status_code": 200,
+            "data": data
+        })
+    except Exception as e:
+        frappe.log_error(f"Error fetching locations: {str(e)}", "Get Locations")
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": str(e)
+        })
+
+
+@frappe.whitelist()
+def get_court_schedules():
+    form_data = frappe.request.get_json()
+    date = form_data.get("date")
+    location = form_data.get("location")
+    time_slot = form_data.get("time_slot")
+    start_time = time_slot.get("start_time")
+    end_time = time_slot.get("end_time")
+
+
+    court_schedules = frappe.get_list("Court Schedule", {"location": location, "date": date, "start_time": start_time, "end_time": end_time}, ["court", "start_time", "end_time"])
+    schedules = []
+    for schedule in court_schedules:
+        if schedule.get("start_time") == start_time or schedule.get("end_time") == end_time:
+            schedules.append({
+                "court": schedule.get("court"),
+                "start_time": schedule.get("start_time"),
+                "end_time": schedule.get("end_time")
+            })
+    courts = frappe.get_all("Court", {"location": location}, ["name", "court_name", "court_type"])
+    indoor_courts = []
+    outdoor_courts = []
+    for court in courts:
+        if not any(schedule.get("court") == court.get("name") for schedule in schedules):
+            if court.get("court_type") == "Indoor":
+                indoor_courts.append({
+                    "court_id": court.get("name"),
+                    "court_name": court.get("court_name"),
+                    "is_available": True
+                })
+            else:
+                outdoor_courts.append({
+                    "court_id": court.get("name"),
+                    "court_name": court.get("court_name"),
+                    "is_available": True
+                })
+
+    
+    
+    frappe.local.response.update({
+        "http_status_code": 200,
+        "message": "Schedules fetched successfully",
+        "data": {
+            "indoor_courts": indoor_courts,
+            "outdoor_courts": outdoor_courts
+        },
+        
+    })

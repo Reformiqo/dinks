@@ -7,6 +7,7 @@ def get_events(location: str):
     try:
         validate_request_params(allowed_params=set(signature(get_events).parameters.keys()))
         events = frappe.get_all("Dink Event", {"location":location})
+        data = []
         
         for event in events:
             doc = frappe.get_doc("Dink Event", event.name)
@@ -26,7 +27,7 @@ def get_events(location: str):
                     "sub_title": things.sub_title
                 })
             
-            data =  {
+            data.append({
             "event_id": doc.name,
             "event_name": doc.event_name,
             "price": doc.price,
@@ -38,12 +39,12 @@ def get_events(location: str):
             "event_facilities": event_facilities,
             "location_facilities": location_facilities, 
             "things_to_keep_in_mind": things_to_know
-            }
-            frappe.local.response.update({
-                "http_status_code": 200,
-                "message": "Events fetched successfully",
-                "data": data
             })
+        frappe.local.response.update({
+            "http_status_code": 200,
+            "message": "Events fetched successfully",
+            "data": data
+        })
     except Exception as e:
         frappe.local.response.update({
             "http_status_code": 400,
