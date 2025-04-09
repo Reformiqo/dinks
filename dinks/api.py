@@ -5,9 +5,10 @@ import razorpay
 import frappe
 from datetime import datetime, timedelta
 import json
-
+from frappe_doc import bruno
 @frappe.whitelist(allow_guest=True)
-def get_days(location):
+@bruno(method="get")
+def get_days():
     today = datetime.today()
     data = []
     for i in range(30):
@@ -21,20 +22,20 @@ def get_days(location):
         })
     return data
 @frappe.whitelist(allow_guest=True)
-def get_next_30_days(location):
+@bruno(method="get")
+def get_next_30_days(court):
     today = datetime.today()
     data = []
     for i in range(30):
         next_date = today + timedelta(days=i)
-        schedules = frappe.get_all("Court Schedules",{"court": location, "date": getdate(next_date)}, ["time", ])
-        courts = frappe.get_all("Location Courts", {"court": location}, ["court_number", "status"])
+        schedules = frappe.get_all("Court Schedule",{"court": court, "date": getdate(next_date)}, ["start_time"])
+        courts = frappe.get_all("Court", court, ["name"])
         day_name = next_date.strftime('%A')  
         date_str = next_date.strftime('%Y-%m-%d') 
         schedule_data = []
         for schedule in schedules:
             
             schedule_data.append({
-                "time": schedule.time,
                 "courts": courts
             })
     
@@ -48,6 +49,7 @@ def get_next_30_days(location):
     
     return data
 @frappe.whitelist(allow_guest=True)
+@bruno(method="get")
 def get_rates():
     rates = frappe.get_all("Booking Price")
     data = []
@@ -69,6 +71,7 @@ def get_rates():
 
 
 @frappe.whitelist(allow_guest=True)
+@bruno(method="get")
 def get_available_courts():
     form_data = frappe.local.form_dict
     location = form_data.get("location")
@@ -98,6 +101,7 @@ def get_available_courts():
     return court_data
 
 @frappe.whitelist(allow_guest=True)
+@bruno(method="get")
 def get_time_slots():
     slots = frappe.get_all("Time Slots", fields=["name", "slot_category"])
     moring_slots = []
@@ -118,8 +122,9 @@ def get_time_slots():
         "evening": evening_slots
     }   
 @frappe.whitelist(allow_guest=True)
-def get_everything(location):
-    dates = get_days(location)  # Fetch next 30 days
+@bruno(method="get")
+def get_everything(court):
+    dates = get_days(court)  # Fetch next 30 days
     schedule_data = []
 
     # Fetch all courts for the location at once
@@ -153,6 +158,7 @@ def get_everything(location):
     return schedule_data
 
 @frappe.whitelist(allow_guest=True)
+@bruno(method="post")
 def get_courts():
     courts = frappe.get_all("Court", fields=["name", "location", "image"])
     data = []
@@ -457,6 +463,7 @@ def get_membership_pricing():
     return price
 
 @frappe.whitelist()
+@bruno(method="delete")
 def delete_company():
     company = "Dinks"
     frappe.db.sql("""

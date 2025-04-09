@@ -2,12 +2,12 @@ import frappe
 import erpnext
 
 @frappe.whitelist()
-def create_invoice(items: list, payments: list, customer:str = None, shipping:dict = None):
+def create_invoice(items: list, payments: list, customer:str = None, shipping:dict = None, reference=None):
     try:
         if not frappe.db.exists("POS Profile", "Dink POS"):
             create_pos_profile()
 
-        pos_profile = frappe.get_doc("POS Profile", "Dink POS")
+        
         if not customer and not frappe.db.exists("Customer", {"email": frappe.session.user}):
             user = frappe.get_doc("User", frappe.session.user)
             name = user.full_name
@@ -17,19 +17,24 @@ def create_invoice(items: list, payments: list, customer:str = None, shipping:di
         invoice = frappe.new_doc("Sales Invoice")
         invoice.customer = customer
         invoice.company = erpnext.get_default_company()
-        invoice.is_pos = 1
-        invoice.pos_profile = pos_profile.name
+        
         for item in items:
             invoice.append("items", {
                 "item_code": item.get("item_code"),
                 "qty": item.get("qty"),
                 "rate": item.get("rate"),
             })
-        for payment in payments:
-            invoice.append("payments", {
-                "mode_of_payment": payment.get("mode_of_payment"),
-                "amount": payment.get("amount")
-            })
+        if payments:
+            pos_profile = frappe.get_doc("POS Profile", "Dink POS")
+            invoice.is_pos = 1
+            invoice.pos_profile = pos_profile.name
+            for payment in payments:
+                invoice.append("payments", {
+                    "mode_of_payment": payment.get("mode_of_payment"),
+                    "amount": payment.get("amount")
+                })
+        invoice.dink_reference = reference
+        
         invoice.save()
         invoice.submit()
         frappe.db.commit()
@@ -80,6 +85,29 @@ def create_customer(name: str, email: str):
         customer.save()
         frappe.db.commit()
         return customer
+    except Exception as e:
+        frappe.local.response.update({
+            "http_status_code": 400,
+            "error": str(e)
+        })
+
+def create_item(name: str, price: float, item_group: str):
+    try:
+        if not frappe.db.exists("Item Group", item_group):
+            item_group = frappe.new_doc("Item Group")
+            item_group.item_group_name = item_group
+            item_group.save()
+            frappe.db.commit()
+        
+        item = frappe.new_doc("Item")
+        item.item_name = name
+        item.item_code = name
+        item.item_group = item_group
+        item.standard_rate = price
+        item.is_stock_item = 0
+        item.save()
+        frappe.db.commit()
+        return item
     except Exception as e:
         frappe.local.response.update({
             "http_status_code": 400,

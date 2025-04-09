@@ -66,7 +66,12 @@ def register_event(event_id:str):
         user = user_doc.full_name
         mobile = user_doc.mobile_no
         date = frappe.utils.today()
-        
+        if frappe.db.exists("Event Registration", {"user_id": user_id, "event": event_id}):
+            frappe.local.response.update({
+                "http_status_code": 400,
+                "error": "You have already registered for this event"
+            })
+            return
         booking = frappe.new_doc("Event Registration")
         booking.user_id = user_id
         booking.user = user

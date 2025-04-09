@@ -134,9 +134,10 @@ def booking_pass(
             "location_id": frappe.db.get_value("Court Schedule", {"booking": booking.name}, "location") or "",
             "team_id": team_id,
             "total_players": team.players_count if team else booking.players,
-            "booking_person": team.team_leader if team else "",
+            "booking_person": booking.customer,
             "start_time": frappe.get_value("Court Schedule", {"booking":booking.name}, "start_time"),
             "end_time": frappe.get_value("Court Schedule", {"booking":booking.name}, "end_time"),
+            "pay_at_court": True if booking.pay_at_court else False
             }    
         
         
@@ -160,17 +161,23 @@ def booking_history():
         event_bookings = frappe.get_all("Event Registration", {"owner": user_id})
         court_data = []
         event_data = []
-        for court in court_bookings:
-            doc = frappe.get_doc("Booking", court.name)
+        for booking in court_bookings:
+            doc = frappe.get_doc("Booking", booking.name)
+            if not frappe.db.exists("Court", doc.court):
+                continue
+            court = frappe.get_doc("Court", doc.court)
+            location = frappe.get_doc("Location", court.location)
             court_data.append({
                 "booking_id": doc.name,
-                "court_name": frappe.db.get_value("Court", court, "court_name"),
-                "location": frappe.db.get_value("Court", court, "location"),
+                "court_name": doc.court,
+                "location": location.name,
                 "date": doc.date,
                 "time": f"{doc.start_time} - {doc.end_time}",
-                "court": doc.court,
-                "image_url": ""
-
+                "image_url": frappe.utils.get_url(location.thumbnail),
+                "location_address_url": location.address_url,
+                "players": doc.players,
+                "customer": doc.customer
+        
             })
         frappe.local.response.update({
             "http_status_code": 200,
@@ -237,7 +244,6 @@ def cancel_booking(booking_id:str):
             return
         booking = frappe.get_doc("Booking", booking_id)
         booking.cancel()
-        frappe.db.commit()
         frappe.local.response.update({
             "http_status_code": 200,
             "message": "Booking cancelled successfully",
@@ -260,13 +266,21 @@ def view_court_details(court_id):
         return
     court = frappe.get_doc("Court", court_id)
     location = frappe.get_doc("Location", court.location)
-    facilites = frappe.get_all("Location Facilities", {"parent": location.name}, ["facility_name"])
+    facilites = frappe.get_all("Location Facilities", {"parent": location.name}, pluck="facility_name")
+    no_of_indoor_courts = frappe.db.count("Court", {"location": location.name, "court_type": "Indoor"})
+    no_of_outdoor_courts = frappe.db.count("Court", {"location": location.name, "court_type": "Outdoor"})
+
     frappe.local.response.update({
         "http_status_code": 200,
         "data": {
             "court_id": court.name,
             "court_name": court.court_name,
             "location": location.location_name,
+            "image_url": frappe.utils.get_url(location.thumbnail),
+            "location_address_url": location.address_url,
+            "full_address": location.address,
+            "no_of_indoor_courts": no_of_indoor_courts,
+            "no_of_outdoor_courts": no_of_outdoor_courts,
             "facilities": facilites
         }
     })
