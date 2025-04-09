@@ -1,7 +1,9 @@
 import frappe
 from frappe import auth
+from frappe_doc import bruno
 
 @frappe.whitelist(allow_guest=True)
+@bruno("POST")
 def login(usr, pwd):
     try:
         if frappe.request.method != "POST":
